@@ -42,6 +42,9 @@ struct ChromeToUIThemeAdapterTests {
         #expect(ui.background == chrome.atmosphereColors().deep)
         #expect(ui.surface == chrome.atmosphereColors().medium)
         #expect(ui.preferredColorScheme == .dark)
+        #if os(macOS)
+        // `preferredAppKitAppearance` 是 AppKit 专属扩展，仅 macOS 存在。
         #expect(ui.preferredAppKitAppearance?.name == .darkAqua)
+        #endif
     }
 }

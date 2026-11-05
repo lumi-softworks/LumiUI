@@ -1,10 +1,10 @@
 import SwiftUI
 
-#if canImport(AppKit)
+#if os(macOS)
 import AppKit
 #endif
 
-#if canImport(AppKit)
+#if os(macOS)
 public extension LumiUITheme {
     /// AppKit 窗口/控件应使用的外观，与 ``preferredColorScheme`` 保持一致。
     /// `nil` 表示清除强制外观，跟随系统。
@@ -38,7 +38,7 @@ public extension View {
     }
 }
 
-#if canImport(AppKit)
+#if os(macOS)
 /// 将宿主 `NSWindow.appearance` 同步为当前 Lumi 主题，修复 AppKit 文本控件在
 /// 「系统浅色 + 应用暗色主题」下仍使用深色字的问题。
 public struct ThemeWindowAppearanceBridge: NSViewRepresentable {

@@ -1,7 +1,9 @@
-#if canImport(AppKit)
-import AppKit
 import OSLog
 import SwiftUI
+
+#if os(macOS)
+import AppKit
+#endif
 
 /// The edge of the pane that owns a split-view divider.
 ///
@@ -93,18 +95,36 @@ private struct AppSplitDividerModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(
-                AppSplitDividerHoverCoordinator(
-                    edge: edge,
-                    isHovered: $isHovered,
-                    initialPosition: initialPosition,
-                    initialTrailingSize: initialTrailingSize,
-                    resizeTarget: resizeTarget,
-                    onResize: onResize
-                )
+                dividerHoverCoordinator
             )
             .overlay(alignment: edge.alignment) {
                 dividerDecoration
             }
+    }
+
+    /// 悬停状态的来源。
+    ///
+    /// - macOS：挂载 `NSSplitView` 协调器，在原生分隔条命中区域上跟踪悬停，
+    ///   并接管分隔条的初始位置恢复与拖拽后尺寸上报。
+    /// - iOS / visionOS：没有 `NSSplitView`，改用 SwiftUI 的 `onHover`，
+    ///   仅保留分隔线的视觉表现（悬停加粗 + 阴影显现）。
+    @ViewBuilder
+    private var dividerHoverCoordinator: some View {
+        #if os(macOS)
+        AppSplitDividerHoverCoordinator(
+            edge: edge,
+            isHovered: $isHovered,
+            initialPosition: initialPosition,
+            initialTrailingSize: initialTrailingSize,
+            resizeTarget: resizeTarget,
+            onResize: onResize
+        )
+        #else
+        Color.clear
+            .onHover { hovering in
+                isHovered = hovering
+            }
+        #endif
     }
 
     @ViewBuilder
@@ -181,6 +201,7 @@ enum AppSplitDividerShadow {
     }
 }
 
+#if os(macOS)
 private struct AppSplitDividerHoverCoordinator: NSViewRepresentable {
     let edge: AppSplitDividerEdge
     @Binding var isHovered: Bool

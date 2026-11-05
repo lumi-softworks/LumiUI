@@ -39,7 +39,7 @@ public struct AppSettingRow<Content: View, TitleSuffix: View>: View {
     }
 
     public var body: some View {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         iosBody
         #else
         macBody
@@ -62,7 +62,7 @@ public struct AppSettingRow<Content: View, TitleSuffix: View>: View {
         .padding(.vertical, 4)
         .padding(.horizontal, 8)
         .background {
-            #if os(macOS)
+            #if os(macOS) || os(visionOS)
             RoundedRectangle(cornerRadius: 6)
                 .fill(
                     isPressed ? Color.primary.opacity(0.1) :
@@ -72,7 +72,7 @@ public struct AppSettingRow<Content: View, TitleSuffix: View>: View {
                 .animation(.easeOut(duration: 0.1), value: isPressed)
             #endif
         }
-        #if os(macOS)
+        #if os(macOS) || os(visionOS)
         .onHover { hovering in
             isHovered = hovering
         }
@@ -230,7 +230,7 @@ public struct AppSettingToggleRow: View {
     }
 
     public var body: some View {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         AppSettingRow(title: title, description: description, icon: icon) {
             Toggle("", isOn: $isOn)
                 .labelsHidden()

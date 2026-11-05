@@ -2,10 +2,10 @@
 
 <div align="center">
 
-**✨ A polished SwiftUI design system for macOS and iOS applications**
+**✨ A polished SwiftUI design system for macOS, iOS and visionOS applications**
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg)](https://swift.org)
-[![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS%2014%2B%20%7C%20iOS%2017%2B-blue.svg)](https://developer.apple.com/xcode/swiftui/)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS%2014%2B%20%7C%20iOS%2017%2B%20%7C%20visionOS%201%2B-blue.svg)](https://developer.apple.com/xcode/swiftui/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 📖 English | [中文](README_zh.md)
@@ -16,7 +16,7 @@
 
 ---
 
-LumiUI is a standalone Swift Package containing reusable SwiftUI design tokens, components, charts, themes, and supporting views. It has no dependency on the Lumi application or any local package, so it can be integrated into independent macOS and iOS projects.
+LumiUI is a standalone Swift Package containing reusable SwiftUI design tokens, components, charts, themes, and supporting views. It has no dependency on the Lumi application or any local package, so it can be integrated into independent macOS, iOS and visionOS projects.
 
 ## 🌟 Features
 
@@ -130,6 +130,7 @@ AppActivityHeatmap(
 
 - macOS 14 or later
 - iOS 17 or later
+- visionOS 1 or later
 - Swift 6.0 or later
 - Xcode with Swift 6 support
 
@@ -247,7 +248,7 @@ When adding a component, prefer the existing design tokens and theme environment
 
 ## 🤝 Contributing
 
-Issues and pull requests are welcome. Please keep public APIs documented, add or update tests for behavior changes, and preserve macOS and iOS compatibility where applicable.
+Issues and pull requests are welcome. Please keep public APIs documented, add or update tests for behavior changes, and preserve macOS, iOS and visionOS compatibility where applicable.
 
 ## 📄 License
 

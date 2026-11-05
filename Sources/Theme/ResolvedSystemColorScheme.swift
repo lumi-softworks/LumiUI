@@ -1,6 +1,6 @@
 import SwiftUI
 
-#if canImport(AppKit)
+#if os(macOS)
 import AppKit
 #endif
 
@@ -9,7 +9,7 @@ public enum ResolvedSystemColorScheme {
     nonisolated(unsafe) public static var current: ColorScheme = .light
 }
 
-#if canImport(AppKit)
+#if os(macOS)
 extension NSWindow {
     /// 系统菜单栏 / status item 所在窗口，不应套用 Lumi 主题 `appearance`。
     var isMenuBarOwnedWindow: Bool {

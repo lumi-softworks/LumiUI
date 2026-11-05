@@ -4,9 +4,9 @@ import SwiftUI
 public struct AppTheme {
     public struct Colors {
         public static let primary = Color("AccentColor")
-        #if canImport(AppKit)
+        #if os(macOS)
         public static let background = Color(nsColor: .windowBackgroundColor)
-        #elseif canImport(UIKit)
+        #elseif os(iOS) || os(visionOS)
         public static let background = Color(uiColor: .systemBackground)
         #endif
 

@@ -140,7 +140,7 @@ private struct AppHoverScaleModifier: ViewModifier {
     @LumiMotionPreferenceReader private var motionPreference
 
     func body(content: Content) -> some View {
-        #if os(macOS)
+        #if os(macOS) || os(visionOS)
         content
             .scaleEffect(isHovering && motionPreference.allowsMotion ? scale : 1.0)
             .animation(

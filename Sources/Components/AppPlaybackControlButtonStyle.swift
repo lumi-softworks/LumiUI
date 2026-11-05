@@ -29,7 +29,7 @@ private struct AppPlaybackControlButtonLabel: View {
             .scaleEffect(scale)
             .animation(LumiMotion.enabled(LumiMotion.press, preference: motionPreference), value: configuration.isPressed)
             .animation(LumiMotion.enabled(LumiMotion.hover, preference: motionPreference), value: isHovering)
-            #if os(macOS)
+            #if os(macOS) || os(visionOS)
             .onHover { isHovering = $0 }
             #endif
     }

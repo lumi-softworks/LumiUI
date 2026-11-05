@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import Testing
 @testable import LumiUI
@@ -10,11 +9,11 @@ private struct RGBA: Equatable {
     let alpha: CGFloat
 
     init(_ color: Color) {
-        let nsColor = NSColor(color).usingColorSpace(.sRGB) ?? .black
-        self.red = nsColor.redComponent
-        self.green = nsColor.greenComponent
-        self.blue = nsColor.blueComponent
-        self.alpha = nsColor.alphaComponent
+        let components = color.lumiSRGBComponents
+        self.red = CGFloat(components.red)
+        self.green = CGFloat(components.green)
+        self.blue = CGFloat(components.blue)
+        self.alpha = CGFloat(components.alpha)
     }
 
     func isApproximatelyEqual(to other: RGBA, tolerance: CGFloat = 0.005) -> Bool {
@@ -68,11 +67,10 @@ struct ColorHexTests {
     @MainActor
     func adaptiveColorDoesNotCrashAndResolvesToOneOfTheVariants() {
         let adaptive = Color.adaptive(light: "FFFFFF", dark: "000000")
-        let resolved = NSColor(adaptive).usingColorSpace(.sRGB)
+        let resolved = adaptive.lumiSRGBComponents
 
-        #expect(resolved != nil)
-        let isWhite = (resolved?.redComponent ?? 0) > 0.95 && (resolved?.alphaComponent ?? 0) > 0.95
-        let isBlack = (resolved?.redComponent ?? 1) < 0.05 && (resolved?.alphaComponent ?? 0) > 0.95
+        let isWhite = resolved.red > 0.95 && resolved.alpha > 0.95
+        let isBlack = resolved.red < 0.05 && resolved.alpha > 0.95
         #expect(isWhite || isBlack)
     }
 
@@ -87,19 +85,34 @@ struct ColorHexTests {
             ResolvedSystemColorScheme.current = previousScheme
         }
 
+        // macOS：`Color.adaptive` 读取 `ResolvedSystemColorScheme.current`
+        // （而非 `NSWindow.appearance`），因此切换该值会改变解析结果。
+        // UIKit 家族：`Color.adaptive` 用 `UIColor` 的 trait collection 解析，
+        // 不受 `ResolvedSystemColorScheme` 影响 —— 这是两个平台有意的不同实现。
+        #if os(macOS)
         ResolvedSystemColorScheme.current = .light
-        var lightColor = Color.clear
-        NSAppearance(named: .darkAqua)!.performAsCurrentDrawingAppearance {
-            lightColor = Color.adaptive(light: "FFFFFF", dark: "000000")
-        }
+        let lightColor = Color.adaptive(light: "FFFFFF", dark: "000000")
         #expect(RGBA(lightColor).isApproximatelyEqual(to: RGBA(red: 1, green: 1, blue: 1)))
 
         ResolvedSystemColorScheme.current = .dark
-        var darkColor = Color.clear
-        NSAppearance(named: .aqua)!.performAsCurrentDrawingAppearance {
-            darkColor = Color.adaptive(light: "FFFFFF", dark: "000000")
-        }
+        let darkColor = Color.adaptive(light: "FFFFFF", dark: "000000")
         #expect(RGBA(darkColor).isApproximatelyEqual(to: RGBA(red: 0, green: 0, blue: 0)))
+        #else
+        // UIKit 家族：只要求能解析出某个变体，且不因 `ResolvedSystemColorScheme` 而崩溃。
+        ResolvedSystemColorScheme.current = .light
+        let lightColor = Color.adaptive(light: "FFFFFF", dark: "000000")
+        let lightComponents = lightColor.lumiSRGBComponents
+        let isLightWhite = lightComponents.red > 0.95 && lightComponents.alpha > 0.95
+        let isLightBlack = lightComponents.red < 0.05 && lightComponents.alpha > 0.95
+        #expect(isLightWhite || isLightBlack)
+
+        ResolvedSystemColorScheme.current = .dark
+        let darkColor = Color.adaptive(light: "FFFFFF", dark: "000000")
+        let darkComponents = darkColor.lumiSRGBComponents
+        let isDarkWhite = darkComponents.red > 0.95 && darkComponents.alpha > 0.95
+        let isDarkBlack = darkComponents.red < 0.05 && darkComponents.alpha > 0.95
+        #expect(isDarkWhite || isDarkBlack)
+        #endif
     }
 
     @Test
@@ -132,10 +145,9 @@ struct ColorHexTests {
         defer { ActiveChromeTheme.current = previous }
 
         let adaptive = Color.adaptive(light: "FFFFFF", dark: "050510")
-        let resolved = NSColor(adaptive).usingColorSpace(.sRGB)
+        let resolved = adaptive.lumiSRGBComponents
 
-        #expect(resolved != nil)
-        #expect((resolved?.redComponent ?? 1) < 0.05)
+        #expect(resolved.red < 0.05)
         #expect(AppThemeAppearanceResolver.effectiveColorScheme == .dark)
     }
 

@@ -1,8 +1,8 @@
 import SwiftUI
 
-#if canImport(AppKit)
+#if os(macOS)
 import AppKit
-#elseif canImport(UIKit)
+#elseif os(iOS) || os(visionOS)
 import UIKit
 #endif
 
@@ -43,9 +43,9 @@ public enum SystemAppearanceResolver {
         if let style = globalInterfaceStyle {
             return style.lowercased().contains("dark") ? .dark : .light
         }
-        #if canImport(AppKit)
+        #if os(macOS)
         return .light
-        #elseif canImport(UIKit)
+        #elseif os(iOS) || os(visionOS)
         return UITraitCollection.current.userInterfaceStyle == .dark ? .dark : .light
         #endif
     }
@@ -73,7 +73,7 @@ public enum AppThemeAppearanceResolver {
     }
 
     /// `Color.adaptive(light:dark:)` 在固定主题下使用的分支。
-    #if canImport(AppKit)
+    #if os(macOS)
     nonisolated static func adaptiveUsesDarkBranch(for appearance: NSAppearance) -> Bool {
         switch ActiveChromeTheme.current.appearanceKind {
         case .dark:
@@ -121,12 +121,12 @@ extension Color {
     public init(light: String, dark: String) {
         switch ActiveChromeTheme.current.appearanceKind {
         case .system:
-            #if canImport(AppKit)
+            #if os(macOS)
             // 使用主题注册中心已经解析好的系统明暗，避免颜色在 AppKit/SwiftUI
             // 渲染阶段再次读取窗口 appearance。否则从固定暗色主题切回 `.system`
             // 时，窗口残留的 DarkAqua 会让背景继续取暗色，而其它组件已取亮色。
             self.init(hex: ResolvedSystemColorScheme.current == .dark ? dark : light)
-            #elseif canImport(UIKit)
+            #elseif os(iOS) || os(visionOS)
             let lightUIColor = UIColor(hex: light)
             let darkUIColor = UIColor(hex: dark)
             self.init(UIColor { trait in
@@ -172,13 +172,13 @@ extension Color {
     ///
     /// 使用平台原生颜色解析后计算相对亮度，支持自适应颜色（adaptive color）。
     public var isLightColor: Bool {
-        #if canImport(AppKit)
+        #if os(macOS)
         let nsColor = NSColor(self)
         guard let rgbColor = nsColor.usingColorSpace(.sRGB) else { return false }
         let r = Double(rgbColor.redComponent)
         let g = Double(rgbColor.greenComponent)
         let b = Double(rgbColor.blueComponent)
-        #elseif canImport(UIKit)
+        #elseif os(iOS) || os(visionOS)
         var rf: CGFloat = 0, gf: CGFloat = 0, bf: CGFloat = 0, af: CGFloat = 0
         UIColor(self).getRed(&rf, green: &gf, blue: &bf, alpha: &af)
         let r = Double(rf), g = Double(gf), b = Double(bf)
@@ -189,7 +189,7 @@ extension Color {
     }
 }
 
-#if canImport(AppKit)
+#if os(macOS)
 private extension NSColor {
     convenience init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -216,7 +216,7 @@ private extension NSColor {
         )
     }
 }
-#elseif canImport(UIKit)
+#elseif os(iOS) || os(visionOS)
 private extension UIColor {
     convenience init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

@@ -22,7 +22,7 @@ public struct AppSearchBar: View {
     }
 
     public var body: some View {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         iosBody
         #else
         macBody

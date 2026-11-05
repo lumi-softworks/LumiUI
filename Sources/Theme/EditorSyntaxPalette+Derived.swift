@@ -1,8 +1,8 @@
 import SwiftUI
 
-#if canImport(AppKit)
+#if os(macOS)
 import AppKit
-#elseif canImport(UIKit)
+#elseif os(iOS) || os(visionOS)
 import UIKit
 #endif
 
@@ -72,7 +72,7 @@ extension EditorSyntaxPalette {
     }
 
     private static func hexString(from color: Color, isDark: Bool, fallback: String) -> String {
-        #if canImport(AppKit)
+        #if os(macOS)
         let appearance = NSAppearance(named: isDark ? .darkAqua : .aqua)!
         var rgb: NSColor?
         appearance.performAsCurrentDrawingAppearance {
@@ -82,7 +82,7 @@ extension EditorSyntaxPalette {
         let r = Int(round(rgb.redComponent * 255))
         let g = Int(round(rgb.greenComponent * 255))
         let b = Int(round(rgb.blueComponent * 255))
-        #elseif canImport(UIKit)
+        #elseif os(iOS) || os(visionOS)
         let trait = UITraitCollection(userInterfaceStyle: isDark ? .dark : .light)
         let resolved = UIColor(color).resolvedColor(with: trait)
         var rr: CGFloat = 0, gg: CGFloat = 0, bb: CGFloat = 0, aa: CGFloat = 0

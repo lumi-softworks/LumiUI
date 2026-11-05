@@ -1,7 +1,9 @@
-#if canImport(AppKit)
-import AppKit
 import Combine
 import SwiftUI
+
+#if os(macOS)
+import AppKit
+#endif
 
 @MainActor
 public final class HoverCoordinator: ObservableObject {
@@ -192,7 +194,9 @@ public struct StatusBarHoverContainer<Content: View, Detail: View>: View {
                 .appSurface(style: .popover, cornerRadius: 12, borderColor: theme.divider)
                 .appThemedAppearance()
                 .background {
+                    #if os(macOS)
                     ThemeWindowAppearanceBridge()
+                    #endif
                 }
         }
     }
@@ -263,7 +267,7 @@ public struct HoverableContainerView<Content: View, Detail: View>: View {
             }
             .popover(isPresented: $isPresented, arrowEdge: .leading) {
                 detailView
-                    .background(SpaceAwarePopoverWindowConfigurator())
+                    .background(popoverWindowConfigurator)
                     .onHover { hovering in
                         coordinator.onHover(id: self.id, isHovering: hovering)
                     }
@@ -291,14 +295,39 @@ public struct HoverableContainerView<Content: View, Detail: View>: View {
         ZStack {
             if isHovering {
                 Rectangle()
-                    .fill(Color(nsColor: .selectedContentBackgroundColor).opacity(0.2))
+                    .fill(selectedBackgroundColor)
             } else {
                 EmptyView()
             }
         }
     }
+
+    /// 选中态背景色：macOS 用 `selectedContentBackgroundColor`，
+    /// UIKit 家族用 `secondarySystemFill` 保持等价观感。
+    private var selectedBackgroundColor: Color {
+        #if os(macOS)
+        return Color(nsColor: .selectedContentBackgroundColor).opacity(0.2)
+        #else
+        return Color.lumiTertiaryFill
+        #endif
+    }
+
+    /// popover 窗口配置。
+    ///
+    /// macOS 需要把 popover 窗口设为「可加入所有 Space」且「全屏时仍显示」，
+    /// 否则在多桌面或全屏场景下 popover 会消失。UIKit 家族没有对应的
+    /// AppKit 窗口概念，用空实现占位。
+    @ViewBuilder
+    private var popoverWindowConfigurator: some View {
+        #if os(macOS)
+        SpaceAwarePopoverWindowConfigurator()
+        #else
+        Color.clear
+        #endif
+    }
 }
 
+#if os(macOS)
 private struct SpaceAwarePopoverWindowConfigurator: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         ConfigView()
@@ -315,6 +344,7 @@ private struct SpaceAwarePopoverWindowConfigurator: NSViewRepresentable {
         }
     }
 }
+#endif
 
 // MARK: - Sidebar Toolbar Hover Container
 
@@ -473,8 +503,10 @@ public struct SidebarToolbarHoverContainer<Content: View, Detail: View>: View {
 
 @MainActor
 private func clearAppKitFirstResponder() {
+    #if os(macOS)
     NSApp.keyWindow?.makeFirstResponder(nil)
     NSApp.mainWindow?.makeFirstResponder(nil)
+    #endif
 }
 
 // MARK: - Sidebar Toolbar Hover Container Extensions
@@ -519,4 +551,3 @@ public func sidebarToolbarPopover<Content: View, Detail: View>(
         content()
     }
 }
-#endif

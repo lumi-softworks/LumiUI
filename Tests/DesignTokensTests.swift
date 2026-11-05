@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import Testing
 @testable import LumiUI
@@ -96,8 +95,8 @@ struct DesignTokensTests {
         let glow = DesignTokens.Shadow.glow(color: .red)
         let baseline = Color.red.opacity(0.4)
 
-        let glowOpacity = NSColor(glow).usingColorSpace(.sRGB)?.alphaComponent ?? 0
-        let baselineOpacity = NSColor(baseline).usingColorSpace(.sRGB)?.alphaComponent ?? 0
+        let glowOpacity = glow.lumiSRGBComponents.alpha
+        let baselineOpacity = baseline.lumiSRGBComponents.alpha
 
         #expect(abs(glowOpacity - baselineOpacity) < 0.001)
     }

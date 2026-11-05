@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import Testing
 @testable import LumiUI
@@ -54,19 +53,19 @@ struct LumiUIThemeTests {
 
         // TestTheme intentionally omits successGlow/warningGlow/errorGlow/infoGlow,
         // which makes the protocol extension defaults apply.
-        let success = NSColor(theme.successGlow).usingColorSpace(.sRGB)
-        let warning = NSColor(theme.warningGlow).usingColorSpace(.sRGB)
-        let error = NSColor(theme.errorGlow).usingColorSpace(.sRGB)
-        let info = NSColor(theme.infoGlow).usingColorSpace(.sRGB)
+        let success = theme.successGlow.lumiSRGBComponents
+        let warning = theme.warningGlow.lumiSRGBComponents
+        let error = theme.errorGlow.lumiSRGBComponents
+        let info = theme.infoGlow.lumiSRGBComponents
 
-        #expect(abs((success?.alphaComponent ?? 0) - 0.65) < 0.01)
-        #expect(abs((warning?.alphaComponent ?? 0) - 0.65) < 0.01)
-        #expect(abs((error?.alphaComponent ?? 0) - 0.65) < 0.01)
-        #expect(abs((info?.alphaComponent ?? 0) - 0.65) < 0.01)
+        #expect(abs(success.alpha - 0.65) < 0.01)
+        #expect(abs(warning.alpha - 0.65) < 0.01)
+        #expect(abs(error.alpha - 0.65) < 0.01)
+        #expect(abs(info.alpha - 0.65) < 0.01)
 
-        let glowAccentNSColor = NSColor(theme.glowAccent).usingColorSpace(.sRGB)
-        let primaryNSColor = NSColor(theme.primary).usingColorSpace(.sRGB)
-        #expect(abs((glowAccentNSColor?.redComponent ?? 0) - (primaryNSColor?.redComponent ?? 1)) < 0.01)
+        let glowAccent = theme.glowAccent.lumiSRGBComponents
+        let primary = theme.primary.lumiSRGBComponents
+        #expect(abs(glowAccent.red - primary.red) < 0.01)
     }
 
     @Test

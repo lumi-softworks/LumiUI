@@ -2,10 +2,10 @@
 
 <div align="center">
 
-**✨ 一个优雅的 SwiftUI 设计系统，专为 macOS 应用打造**
+**✨ 一个优雅的 SwiftUI 设计系统，支持 macOS、iOS 与 visionOS**
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg)](https://swift.org)
-[![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS%2014+-blue.svg)](https://developer.apple.com/xcode/macos/)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS%2014%2B%20%7C%20iOS%2017%2B%20%7C%20visionOS%201%2B-blue.svg)](https://developer.apple.com/xcode/swiftui/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [功能特性](#-功能特性) • [快速开始](#-快速开始) • [组件预览](#-组件预览) • [设计系统](#-设计系统) • [最佳实践](#-最佳实践)
@@ -16,7 +16,7 @@
 
 ---
 
-LumiUI 是一个独立的 Swift Package，提供可复用的 SwiftUI 设计令牌、组件、图表与主题系统。它不依赖 Lumi 主应用或其他本地 package，既支持 macOS，也支持 iOS。
+LumiUI 是一个独立的 Swift Package，提供可复用的 SwiftUI 设计令牌、组件、图表与主题系统。它不依赖 Lumi 主应用或其他本地 package，同时支持 macOS、iOS 与 visionOS。
 
 ## 🌟 功能特性
 
@@ -137,6 +137,8 @@ AppActivityHeatmap(
 
 ### 系统要求
 - macOS 14.0+
+- iOS 17.0+
+- visionOS 1.0+
 - Xcode 15.0+
 - Swift 6.0+
 
