@@ -140,7 +140,7 @@ Add LumiUI to your `Package.swift` dependencies:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/CofficLab/LumiUI.git", from: "1.0.1")
+    .package(url: "https://github.com/lumi-softworks/LumiUI.git", from: "1.0.1")
 ]
 ```
 
@@ -238,7 +238,7 @@ Resources/           # Localization resources
 Clone the repository and run the package checks:
 
 ```bash
-git clone https://github.com/CofficLab/LumiUI.git
+git clone https://github.com/lumi-softworks/LumiUI.git
 cd LumiUI
 swift package dump-package
 swift test
@@ -261,7 +261,7 @@ LumiUI is released under the [MIT License](LICENSE).
 
 ## 🔗 Links
 
-- [LumiUI on GitHub](https://github.com/CofficLab/LumiUI)
+- [LumiUI on GitHub](https://github.com/lumi-softworks/LumiUI)
 - [Lumi — the host application](https://github.com/CofficLab/Lumi)
 
 <div align="center">
