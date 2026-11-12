@@ -1,22 +1,5 @@
 import Foundation
 
-// MARK: - Point Style
-
-/// 折线图数据点圆圈的绘制策略。
-public enum AppLineChartPointStyle: Sendable, Equatable {
-    /// 始终绘制数据点圆圈。
-    case always
-    /// 按密度自动决定：圆点间距不足时只画折线。
-    case automatic
-    /// 只画折线，不绘制数据点。
-    case never
-
-    /// 自动模式下判定「不拥挤」所需的最小圆点间距（点）。
-    ///
-    /// 圆点直径为 6，留出 1 点间隙即不会互相重叠。
-    public static let minimumDotSpacing: CGFloat = 7
-}
-
 // MARK: - Layout
 
 /// 折线图可见点的布局结果。
