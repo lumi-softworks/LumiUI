@@ -198,6 +198,13 @@ public struct AppLineChart: View {
     public let fixedPointSpacing: CGFloat?
     /// 垂直参考线。
     public let guides: [AppLineChartGuide]
+    /// 横轴标签的语义。
+    ///
+    /// 横轴不一定代表时间：按请求排列的曲线其横轴是请求序号，标成日期会
+    /// 让标签与布局互相矛盾。默认 `.date` 保持既有行为不变。
+    public let axisStyle: AppLineChartAxisStyle
+    /// 是否绘制刻度线与刻度标签。
+    public let showsAxisTicks: Bool
 
     @State private var hoveredIndex: Int?
     @State private var scrollOffset: CGFloat = 0
@@ -212,7 +219,9 @@ public struct AppLineChart: View {
         maximumVisiblePoints: Int? = nil,
         pointStyle: AppLineChartPointStyle = .always,
         fixedPointSpacing: CGFloat? = nil,
-        guides: [AppLineChartGuide] = []
+        guides: [AppLineChartGuide] = [],
+        axisStyle: AppLineChartAxisStyle = .date,
+        showsAxisTicks: Bool = false
     ) {
         self.points = points
         self.accessibilityLabel = accessibilityLabel
@@ -221,6 +230,8 @@ public struct AppLineChart: View {
         self.pointStyle = pointStyle
         self.fixedPointSpacing = fixedPointSpacing
         self.guides = guides
+        self.axisStyle = axisStyle
+        self.showsAxisTicks = showsAxisTicks
     }
 
     public var body: some View {
@@ -297,6 +308,25 @@ extension AppLineChart {
 
             guideLayer(layout: layout, plotWidth: plotWidth, plotHeight: plotHeight, inset: inset)
 
+            if showsAxisTicks {
+                let ticks = AppLineChartTickLayout.ticks(
+                    points: points,
+                    visibleRange: 0..<points.count,
+                    axisStyle: axisStyle
+                )
+                axisTicksLayer(
+                    ticks: ticks,
+                    xPosition: { index in
+                        let fraction = layout.originalCount > 1
+                            ? CGFloat(index) / CGFloat(layout.originalCount - 1)
+                            : 0.5
+                        return inset.leading + plotWidth * min(max(fraction, 0), 1)
+                    },
+                    plotHeight: plotHeight,
+                    inset: inset
+                )
+            }
+
             if let hoveredIndex,
                layout.visiblePoints.indices.contains(hoveredIndex),
                chartPoints.indices.contains(hoveredIndex) {
@@ -357,6 +387,39 @@ extension AppLineChart {
             dateLabel(points.last?.date)
                 .padding(.trailing, 12)
                 .padding(.bottom, 5)
+        }
+    }
+}
+
+// MARK: - Axis Ticks
+
+extension AppLineChart {
+    /// 刻度层：竖向刻度线 + 底部标签。
+    ///
+    /// 刻度锚定在可见范围内的等距点上，因此无论序列多长，标签都不会挤在一起。
+    private func axisTicksLayer(
+        ticks: [AppLineChartTick],
+        xPosition: @escaping (Int) -> CGFloat,
+        plotHeight: CGFloat,
+        inset: EdgeInsets
+    ) -> some View {
+        ForEach(ticks, id: \.pointIndex) { tick in
+            let x = xPosition(tick.pointIndex)
+
+            ZStack(alignment: .bottom) {
+                Path { path in
+                    path.move(to: CGPoint(x: x, y: inset.top))
+                    path.addLine(to: CGPoint(x: x, y: inset.top + plotHeight))
+                }
+                .stroke(theme.divider.opacity(0.5), lineWidth: 1)
+
+                Text(tick.text)
+                    .font(.system(size: 9))
+                    .foregroundStyle(theme.textTertiary)
+                    .monospacedDigit()
+                    .fixedSize()
+                    .position(x: x, y: inset.top + plotHeight + 11)
+            }
         }
     }
 }
@@ -429,6 +492,20 @@ extension AppLineChart {
                 }
 
                 scrollableGuideLayer(geometry: geometry, plotHeight: plotHeight, inset: inset)
+
+                if showsAxisTicks {
+                    let ticks = AppLineChartTickLayout.ticks(
+                        points: points,
+                        visibleRange: visible,
+                        axisStyle: axisStyle
+                    )
+                    axisTicksLayer(
+                        ticks: ticks,
+                        xPosition: { geometry.xPosition(forIndex: $0) },
+                        plotHeight: plotHeight,
+                        inset: inset
+                    )
+                }
             }
             .frame(width: geometry.contentWidth, height: viewport.height)
             .background {
