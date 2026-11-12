@@ -20,17 +20,27 @@ public struct AppLineChart: View {
     public let points: [AppLineChartPoint]
     public let valueLabel: (Double) -> String
     public let accessibilityLabel: String
+    /// 最多可见的数据点数；`nil` 表示不限制。
+    ///
+    /// 超出后按桶取极值降采样，尖峰与断崖不会丢失。
+    public let maximumVisiblePoints: Int?
+    /// 数据点圆圈的绘制策略。
+    public let pointStyle: AppLineChartPointStyle
 
     @State private var hoveredIndex: Int?
 
     public init(
         points: [AppLineChartPoint],
         accessibilityLabel: String = "Line chart",
-        valueLabel: @escaping (Double) -> String = { String(format: "%.0f", $0) }
+        valueLabel: @escaping (Double) -> String = { String(format: "%.0f", $0) },
+        maximumVisiblePoints: Int? = nil,
+        pointStyle: AppLineChartPointStyle = .always
     ) {
         self.points = points
         self.accessibilityLabel = accessibilityLabel
         self.valueLabel = valueLabel
+        self.maximumVisiblePoints = maximumVisiblePoints
+        self.pointStyle = pointStyle
     }
 
     public var body: some View {
@@ -38,17 +48,25 @@ public struct AppLineChart: View {
             let inset = EdgeInsets(top: 14, leading: 14, bottom: 24, trailing: 14)
             let plotWidth = max(proxy.size.width - inset.leading - inset.trailing, 1)
             let plotHeight = max(proxy.size.height - inset.top - inset.bottom, 1)
+
+            let layout = AppLineChartDownsampling.layout(
+                points: points,
+                maximumVisiblePoints: maximumVisiblePoints
+            )
+            let fractions = layout.xFractions
+
+            // 纵轴始终按原始数据的最大值缩放，降采样不会改变纵轴尺度。
             let maxValue = max(points.map(\.value).max() ?? 0, 1)
-            let chartPoints = points.enumerated().map { index, point in
+            let chartPoints = zip(layout.visiblePoints, fractions).map { point, fraction in
                 CGPoint(
-                    x: inset.leading + plotWidth * (points.count == 1 ? 0.5 : CGFloat(index) / CGFloat(points.count - 1)),
+                    x: inset.leading + plotWidth * CGFloat(fraction),
                     y: inset.top + plotHeight * (1 - CGFloat(point.value / maxValue))
                 )
             }
 
             ZStack(alignment: .topLeading) {
                 Canvas { context, size in
-                    guard !points.isEmpty, size.width > 0, size.height > 0 else { return }
+                    guard !chartPoints.isEmpty, size.width > 0, size.height > 0 else { return }
 
                     var grid = Path()
                     for step in 0...2 {
@@ -67,19 +85,21 @@ public struct AppLineChart: View {
                     }
                     context.stroke(line, with: .color(theme.primary), lineWidth: 2.2)
 
-                    for point in chartPoints {
-                        context.fill(
-                            Path(ellipseIn: CGRect(x: point.x - 3, y: point.y - 3, width: 6, height: 6)),
-                            with: .color(theme.primary)
-                        )
+                    if Self.shouldDrawPoints(style: pointStyle, chartPoints: chartPoints) {
+                        for point in chartPoints {
+                            context.fill(
+                                Path(ellipseIn: CGRect(x: point.x - 3, y: point.y - 3, width: 6, height: 6)),
+                                with: .color(theme.primary)
+                            )
+                        }
                     }
                 }
 
                 if let hoveredIndex,
-                   points.indices.contains(hoveredIndex),
+                   layout.visiblePoints.indices.contains(hoveredIndex),
                    chartPoints.indices.contains(hoveredIndex) {
                     let point = chartPoints[hoveredIndex]
-                    let dataPoint = points[hoveredIndex]
+                    let dataPoint = layout.visiblePoints[hoveredIndex]
 
                     Path { path in
                         path.move(to: CGPoint(x: point.x, y: inset.top))
@@ -119,10 +139,9 @@ public struct AppLineChart: View {
             .onContinuousHover { phase in
                 switch phase {
                 case let .active(location):
-                    guard !points.isEmpty else { return }
-                    let ratio = (location.x - inset.leading) / plotWidth
-                    let rawIndex = Int((ratio * CGFloat(points.count - 1)).rounded())
-                    hoveredIndex = min(max(rawIndex, 0), points.count - 1)
+                    guard !fractions.isEmpty else { return }
+                    let ratio = min(max((location.x - inset.leading) / plotWidth, 0), 1)
+                    hoveredIndex = Self.nearestVisibleIndex(fractions: fractions, ratio: ratio)
                 case .ended:
                     hoveredIndex = nil
                 }
@@ -144,6 +163,45 @@ public struct AppLineChart: View {
                 .padding(.bottom, 5)
         }
         .accessibilityLabel(accessibilityLabel)
+    }
+
+    // MARK: - Helpers
+
+    /// 是否绘制数据点圆圈。
+    ///
+    /// `.automatic` 下按相邻点的最小水平间距判断：间距不足时圆点会互相重叠，
+    /// 叠成一条锯齿状的粗带，此时只保留折线。
+    static func shouldDrawPoints(
+        style: AppLineChartPointStyle,
+        chartPoints: [CGPoint]
+    ) -> Bool {
+        switch style {
+        case .always:
+            return true
+        case .never:
+            return false
+        case .automatic:
+            guard chartPoints.count > 1 else { return true }
+            var minimumSpacing = CGFloat.greatestFiniteMagnitude
+            for pair in zip(chartPoints, chartPoints.dropFirst()) {
+                minimumSpacing = min(minimumSpacing, abs(pair.1.x - pair.0.x))
+            }
+            return minimumSpacing >= AppLineChartPointStyle.minimumDotSpacing
+        }
+    }
+
+    /// 找到与给定水平比例最接近的可见点下标。
+    private static func nearestVisibleIndex(fractions: [Double], ratio: CGFloat) -> Int {
+        var bestIndex = 0
+        var bestDistance = CGFloat.greatestFiniteMagnitude
+        for (index, fraction) in fractions.enumerated() {
+            let distance = abs(CGFloat(fraction) - ratio)
+            if distance < bestDistance {
+                bestDistance = distance
+                bestIndex = index
+            }
+        }
+        return bestIndex
     }
 
     private func dateLabel(_ date: Date?) -> some View {
