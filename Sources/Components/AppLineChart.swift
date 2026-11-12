@@ -205,6 +205,8 @@ public struct AppLineChart: View {
     public let axisStyle: AppLineChartAxisStyle
     /// 是否绘制刻度线与刻度标签。
     public let showsAxisTicks: Bool
+    /// 是否在左下角与右下角显示日期标签。
+    public let showsDateLabels: Bool
 
     @State private var hoveredIndex: Int?
     @State private var scrollOffset: CGFloat = 0
@@ -221,7 +223,8 @@ public struct AppLineChart: View {
         fixedPointSpacing: CGFloat? = nil,
         guides: [AppLineChartGuide] = [],
         axisStyle: AppLineChartAxisStyle = .date,
-        showsAxisTicks: Bool = false
+        showsAxisTicks: Bool = false,
+        showsDateLabels: Bool = true
     ) {
         self.points = points
         self.accessibilityLabel = accessibilityLabel
@@ -232,6 +235,7 @@ public struct AppLineChart: View {
         self.guides = guides
         self.axisStyle = axisStyle
         self.showsAxisTicks = showsAxisTicks
+        self.showsDateLabels = showsDateLabels
     }
 
     public var body: some View {
@@ -379,14 +383,18 @@ extension AppLineChart {
             }
         }
         .overlay(alignment: .bottomLeading) {
-            dateLabel(points.first?.date)
-                .padding(.leading, 12)
-                .padding(.bottom, 5)
+            if showsDateLabels {
+                dateLabel(points.first?.date)
+                    .padding(.leading, 12)
+                    .padding(.bottom, 5)
+            }
         }
         .overlay(alignment: .bottomTrailing) {
-            dateLabel(points.last?.date)
-                .padding(.trailing, 12)
-                .padding(.bottom, 5)
+            if showsDateLabels {
+                dateLabel(points.last?.date)
+                    .padding(.trailing, 12)
+                    .padding(.bottom, 5)
+            }
         }
     }
 }
@@ -577,14 +585,18 @@ extension AppLineChart {
             }
         }
         .overlay(alignment: .bottomLeading) {
-            dateLabel(visiblePoints.first?.point.date)
-                .padding(.leading, 12)
-                .padding(.bottom, 5)
+            if showsDateLabels {
+                dateLabel(visiblePoints.first?.point.date)
+                    .padding(.leading, 12)
+                    .padding(.bottom, 5)
+            }
         }
         .overlay(alignment: .bottomTrailing) {
-            dateLabel(visiblePoints.last?.point.date)
-                .padding(.trailing, 12)
-                .padding(.bottom, 5)
+            if showsDateLabels {
+                dateLabel(visiblePoints.last?.point.date)
+                    .padding(.trailing, 12)
+                    .padding(.bottom, 5)
+            }
         }
     }
 }
