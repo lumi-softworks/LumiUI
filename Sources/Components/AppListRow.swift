@@ -5,19 +5,34 @@ public struct AppListRow<Content: View>: View {
     @LumiMotionPreferenceReader private var motionPreference
 
     let isSelected: Bool
+    /// 语义色调：用于「被阻止 / 允许」这类状态行。
+    ///
+    /// 设置后行底色带该色调的淡染，悬停时加深；`isSelected` 仍优先。
+    let accent: Color?
     let action: (() -> Void)?
     let content: Content
 
     @State private var isHovered = false
 
-    public init(isSelected: Bool = false, @ViewBuilder content: () -> Content) {
+    public init(
+        isSelected: Bool = false,
+        accent: Color? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
         self.isSelected = isSelected
+        self.accent = accent
         self.action = nil
         self.content = content()
     }
 
-    public init(isSelected: Bool, action: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+    public init(
+        isSelected: Bool = false,
+        accent: Color? = nil,
+        action: @escaping () -> Void,
+        @ViewBuilder content: () -> Content
+    ) {
         self.isSelected = isSelected
+        self.accent = accent
         self.action = action
         self.content = content()
     }
@@ -47,6 +62,8 @@ public struct AppListRow<Content: View>: View {
         Group {
             if isSelected {
                 theme.appListRowSelectedBackground
+            } else if let accent {
+                accent.opacity(isHovered ? 0.18 : 0.10)
             } else if isHovered {
                 theme.appListRowHoverBackground
             } else {
@@ -60,6 +77,9 @@ public struct AppListRow<Content: View>: View {
         if isSelected {
             Rectangle()
                 .stroke(theme.primary.opacity(0.3), lineWidth: 1)
+        } else if let accent {
+            Rectangle()
+                .stroke(accent.opacity(isHovered ? 0.55 : 0.3), lineWidth: 1)
         } else if isHovered {
             Rectangle()
                 .stroke(theme.appHoverBorder, lineWidth: 1)

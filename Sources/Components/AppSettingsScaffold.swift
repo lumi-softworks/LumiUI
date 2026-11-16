@@ -1,5 +1,9 @@
 import SwiftUI
 
+/// 旧的设置分组容器（与 `AppSettingSection` 并存）。
+///
+/// 新代码请使用 `AppSettingSection` / `AppSettingRow`（单数族）——它带
+/// macOS hover/按压反馈与 iOS 行样式，是当前规范；本类型仅保留给既有页面。
 public struct AppSettingsSection<Content: View>: View {
     @LumiTheme private var theme
 
@@ -57,6 +61,10 @@ public struct AppSettingsSection<Content: View>: View {
     }
 }
 
+/// 旧的设置行表面容器。
+///
+/// 新代码请使用 `AppSettingRow`（单数族）；本类型保留给既有的
+/// 「图标 + 标题 + 行尾控件」以外的自定义行布局。
 public struct AppSettingsRow<Content: View>: View {
     @LumiTheme private var theme
     @LumiMotionPreferenceReader private var motionPreference

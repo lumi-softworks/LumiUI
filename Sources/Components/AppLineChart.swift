@@ -203,6 +203,8 @@ public struct AppLineChart: View {
     /// 横轴不一定代表时间：按请求排列的曲线其横轴是请求序号，标成日期会
     /// 让标签与布局互相矛盾。默认 `.date` 保持既有行为不变。
     public let axisStyle: AppLineChartAxisStyle
+    /// 是否在折线下方填充渐变色（强调累计量/流量的体量）。
+    public let showsArea: Bool
     /// 是否绘制刻度线与刻度标签。
     public let showsAxisTicks: Bool
     /// 是否在左下角与右下角显示日期标签。
@@ -224,7 +226,8 @@ public struct AppLineChart: View {
         guides: [AppLineChartGuide] = [],
         axisStyle: AppLineChartAxisStyle = .date,
         showsAxisTicks: Bool = false,
-        showsDateLabels: Bool = true
+        showsDateLabels: Bool = true,
+        showsArea: Bool = false
     ) {
         self.points = points
         self.accessibilityLabel = accessibilityLabel
@@ -236,6 +239,7 @@ public struct AppLineChart: View {
         self.axisStyle = axisStyle
         self.showsAxisTicks = showsAxisTicks
         self.showsDateLabels = showsDateLabels
+        self.showsArea = showsArea
     }
 
     public var body: some View {
@@ -290,6 +294,24 @@ extension AppLineChart {
                     grid.addLine(to: CGPoint(x: inset.leading + plotWidth, y: y))
                 }
                 context.stroke(grid, with: .color(theme.divider.opacity(0.7)), lineWidth: 1)
+
+                if showsArea, let first = chartPoints.first, let last = chartPoints.last {
+                    var area = Path()
+                    area.move(to: CGPoint(x: first.x, y: inset.top + plotHeight))
+                    for point in chartPoints {
+                        area.addLine(to: point)
+                    }
+                    area.addLine(to: CGPoint(x: last.x, y: inset.top + plotHeight))
+                    area.closeSubpath()
+                    context.fill(
+                        area,
+                        with: .linearGradient(
+                            SwiftUI.Gradient(colors: [theme.primary.opacity(0.28), theme.primary.opacity(0.02)]),
+                            startPoint: CGPoint(x: 0, y: inset.top),
+                            endPoint: CGPoint(x: 0, y: inset.top + plotHeight)
+                        )
+                    )
+                }
 
                 var line = Path()
                 if let first = chartPoints.first {
@@ -471,6 +493,31 @@ extension AppLineChart {
 
                     guard !visiblePoints.isEmpty else { return }
 
+                    let chartPoints = visiblePoints.map { entry in
+                        CGPoint(
+                            x: geometry.xPosition(forIndex: entry.index),
+                            y: inset.top + plotHeight * (1 - CGFloat(entry.point.value / maxValue))
+                        )
+                    }
+
+                    if showsArea, let first = chartPoints.first, let last = chartPoints.last {
+                        var area = Path()
+                        area.move(to: CGPoint(x: first.x, y: inset.top + plotHeight))
+                        for point in chartPoints {
+                            area.addLine(to: point)
+                        }
+                        area.addLine(to: CGPoint(x: last.x, y: inset.top + plotHeight))
+                        area.closeSubpath()
+                        context.fill(
+                            area,
+                            with: .linearGradient(
+                                SwiftUI.Gradient(colors: [theme.primary.opacity(0.28), theme.primary.opacity(0.02)]),
+                                startPoint: CGPoint(x: 0, y: inset.top),
+                                endPoint: CGPoint(x: 0, y: inset.top + plotHeight)
+                            )
+                        )
+                    }
+
                     var line = Path()
                     for (offset, entry) in visiblePoints.enumerated() {
                         let x = geometry.xPosition(forIndex: entry.index)
@@ -483,12 +530,6 @@ extension AppLineChart {
                     }
                     context.stroke(line, with: .color(theme.primary), lineWidth: 2.2)
 
-                    let chartPoints = visiblePoints.map { entry in
-                        CGPoint(
-                            x: geometry.xPosition(forIndex: entry.index),
-                            y: inset.top + plotHeight * (1 - CGFloat(entry.point.value / maxValue))
-                        )
-                    }
                     if Self.shouldDrawPoints(style: pointStyle, chartPoints: chartPoints) {
                         for point in chartPoints {
                             context.fill(
