@@ -26,6 +26,17 @@ struct AppSegmentedControlTests {
 
     @Test
     @MainActor
+    func storesPerSegmentAccessibilityIdentifiers() {
+        let control = AppSegmentedControl(
+            ["全部", "允许", "阻止"],
+            selection: .constant(0),
+            accessibilityIdentifiers: ["a.all", "a.allow", "a.deny"]
+        )
+        #expect(control.accessibilityIdentifiers == ["a.all", "a.allow", "a.deny"])
+    }
+
+    @Test
+    @MainActor
     func writesSelectionThroughBinding() {
         var selection = 0
         let binding = Binding(

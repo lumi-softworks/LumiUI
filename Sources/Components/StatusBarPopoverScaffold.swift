@@ -5,6 +5,7 @@ public struct StatusBarPopoverScaffold<HeaderAccessory: View, Content: View, Foo
 
     private let title: String
     private let systemImage: String?
+    private let systemImageColor: Color?
     private let subtitle: String?
     private let showsHeaderDivider: Bool
     private let headerAccessory: HeaderAccessory
@@ -14,6 +15,7 @@ public struct StatusBarPopoverScaffold<HeaderAccessory: View, Content: View, Foo
     public init(
         title: String,
         systemImage: String? = nil,
+        systemImageColor: Color? = nil,
         subtitle: String? = nil,
         showsHeaderDivider: Bool = true,
         @ViewBuilder headerAccessory: () -> HeaderAccessory,
@@ -22,6 +24,7 @@ public struct StatusBarPopoverScaffold<HeaderAccessory: View, Content: View, Foo
     ) {
         self.title = title
         self.systemImage = systemImage
+        self.systemImageColor = systemImageColor
         self.subtitle = subtitle
         self.showsHeaderDivider = showsHeaderDivider
         self.headerAccessory = headerAccessory()
@@ -53,7 +56,7 @@ public struct StatusBarPopoverScaffold<HeaderAccessory: View, Content: View, Foo
             if let systemImage {
                 Image(systemName: systemImage)
                     .font(.appCallout)
-                    .foregroundColor(theme.primary)
+                    .foregroundColor(systemImageColor ?? theme.primary)
                     .frame(width: 18)
             }
 
@@ -80,6 +83,7 @@ public extension StatusBarPopoverScaffold where HeaderAccessory == EmptyView, Fo
     init(
         title: String,
         systemImage: String? = nil,
+        systemImageColor: Color? = nil,
         subtitle: String? = nil,
         showsHeaderDivider: Bool = true,
         @ViewBuilder content: () -> Content
@@ -87,6 +91,7 @@ public extension StatusBarPopoverScaffold where HeaderAccessory == EmptyView, Fo
         self.init(
             title: title,
             systemImage: systemImage,
+            systemImageColor: systemImageColor,
             subtitle: subtitle,
             showsHeaderDivider: showsHeaderDivider,
             headerAccessory: { EmptyView() },
@@ -100,6 +105,7 @@ public extension StatusBarPopoverScaffold where Footer == EmptyView {
     init(
         title: String,
         systemImage: String? = nil,
+        systemImageColor: Color? = nil,
         subtitle: String? = nil,
         showsHeaderDivider: Bool = true,
         @ViewBuilder headerAccessory: () -> HeaderAccessory,
@@ -108,6 +114,7 @@ public extension StatusBarPopoverScaffold where Footer == EmptyView {
         self.init(
             title: title,
             systemImage: systemImage,
+            systemImageColor: systemImageColor,
             subtitle: subtitle,
             showsHeaderDivider: showsHeaderDivider,
             headerAccessory: headerAccessory,

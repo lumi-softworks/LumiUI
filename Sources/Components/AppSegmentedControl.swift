@@ -14,6 +14,8 @@ public struct AppSegmentedControl: View {
     let titles: [Text]
     let selection: Binding<Int>
     let maxWidth: CGFloat?
+    /// 与 `options` 等长的无障碍标识；供 UI 测试逐个定位分段。
+    let accessibilityIdentifiers: [String]?
 
     @State private var hoveredIndex: Int? = nil
 
@@ -21,12 +23,14 @@ public struct AppSegmentedControl: View {
     public init(
         _ options: [String],
         selection: Binding<Int>,
-        maxWidth: CGFloat? = nil
+        maxWidth: CGFloat? = nil,
+        accessibilityIdentifiers: [String]? = nil
     ) {
         self.options = options
         self.titles = options.map { Text($0) }
         self.selection = selection
         self.maxWidth = maxWidth
+        self.accessibilityIdentifiers = accessibilityIdentifiers
     }
 
     public var body: some View {
@@ -72,6 +76,7 @@ public struct AppSegmentedControl: View {
         .buttonStyle(.plain)
         .accessibilityLabel(options[index])
         .accessibilityValue(isSelected ? "selected" : "not selected")
+        .accessibilityIdentifierIfPresent(accessibilityIdentifiers.flatMap { $0.indices.contains(index) ? $0[index] : nil })
         .onHover { hovering in
             guard motionPreference.allowsMotion else {
                 hoveredIndex = hovering ? index : (hoveredIndex == index ? nil : hoveredIndex)
@@ -94,6 +99,17 @@ public struct AppSegmentedControl: View {
         } else {
             RoundedRectangle(cornerRadius: DesignTokens.Radius.sm - 2, style: .continuous)
                 .fill(Color.clear)
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func accessibilityIdentifierIfPresent(_ identifier: String?) -> some View {
+        if let identifier {
+            accessibilityIdentifier(identifier)
+        } else {
+            self
         }
     }
 }

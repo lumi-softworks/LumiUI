@@ -38,23 +38,34 @@ public struct AppListRow<Content: View>: View {
     }
 
     public var body: some View {
-        Button(action: { action?() }) {
-            content
-                .padding(.horizontal, AppUI.Spacing.md)
-                .padding(.vertical, AppUI.Spacing.sm)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(rowBackground)
-                .overlay(rowBorder)
-                .scaleEffect(isHovered && motionPreference.allowsMotion ? AppUI.Motion.rowHoverScale : 1.0)
-                .shadow(color: Color.black.opacity(isHovered ? 0.06 : 0), radius: isHovered ? 8 : 0, y: isHovered ? 3 : 0)
-        }
-        .buttonStyle(.plain)
-        .contentShape(Rectangle())
-        .onHover { hovering in
-            AppUI.Motion.animate(AppUI.Motion.enabled(AppUI.Motion.hover, preference: motionPreference)) {
-                isHovered = hovering
+        Group {
+            if let action {
+                Button(action: action) { rowSurface }
+                    .buttonStyle(.plain)
+            } else {
+                // 无动作时不套 Button：行内可能含自己的控件（如开关、按钮），
+                // 外层 Button 会吞掉这些控件的点击。
+                rowSurface
             }
         }
+        .contentShape(Rectangle())
+    }
+
+    private var rowSurface: some View {
+        content
+            .padding(.horizontal, AppUI.Spacing.md)
+            .padding(.vertical, AppUI.Spacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(rowBackground)
+            .overlay(rowBorder)
+            .scaleEffect(isHovered && motionPreference.allowsMotion ? AppUI.Motion.rowHoverScale : 1.0)
+            .shadow(color: Color.black.opacity(isHovered ? 0.06 : 0), radius: isHovered ? 8 : 0, y: isHovered ? 3 : 0)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                AppUI.Motion.animate(AppUI.Motion.enabled(AppUI.Motion.hover, preference: motionPreference)) {
+                    isHovered = hovering
+                }
+            }
     }
 
     @ViewBuilder
