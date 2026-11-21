@@ -144,6 +144,11 @@ public struct AppButton: View {
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm, style: .continuous))
         }
         .buttonStyle(.plain)
+        #if os(iOS)
+        // HIG 最低 44pt 可点区域：视觉尺寸不变，用不可见的容器扩大命中区。
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
+        #endif
         .disabled(isDisabled)
         .opacity(isDisabled && style != .primary ? 0.5 : 1.0)
         .scaleEffect(isEffectivelyHovered && motionPreference.allowsMotion ? AppUI.Motion.hoverScale : 1.0)
