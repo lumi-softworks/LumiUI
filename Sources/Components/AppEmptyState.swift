@@ -9,31 +9,42 @@ public struct AppEmptyState: View {
     let description: Text?
     let actionTitle: Text?
     let action: (() -> Void)?
+    let size: Size
+
+    /// 空态密度：`regular` 用于内容区，`compact` 用于窄侧栏。
+    public enum Size {
+        case regular
+        case compact
+    }
 
     @State private var isHovering = false
 
     public init(
         icon: String,
         title: LocalizedStringKey,
-        description: LocalizedStringKey? = nil
+        description: LocalizedStringKey? = nil,
+        size: Size = .regular
     ) {
         self.icon = icon
         self.title = Text(title)
         self.description = description.map { Text($0) }
         self.actionTitle = nil
         self.action = nil
+        self.size = size
     }
 
     public init(
         icon: String,
         title: String,
-        description: String? = nil
+        description: String? = nil,
+        size: Size = .regular
     ) {
         self.icon = icon
         self.title = Text(title)
         self.description = description.map(Text.init)
         self.actionTitle = nil
         self.action = nil
+        self.size = size
     }
 
     public init(
@@ -48,6 +59,7 @@ public struct AppEmptyState: View {
         self.description = description.map { Text($0) }
         self.actionTitle = Text(actionTitle)
         self.action = action
+        self.size = .regular
     }
 
     public init(
@@ -62,30 +74,33 @@ public struct AppEmptyState: View {
         self.description = description.map(Text.init)
         self.actionTitle = Text(actionTitle)
         self.action = action
+        self.size = .regular
     }
 
     public var body: some View {
-        VStack(spacing: AppUI.Spacing.md) {
+        VStack(spacing: spacing) {
             Image(systemName: icon)
-                .font(.system(size: 48))
-                .foregroundColor(theme.textSecondary.opacity(0.6))
-                .scaleEffect(isHovering && motionPreference.allowsMotion ? AppUI.Motion.hoverScale : 1.0)
+                .font(.system(size: iconSize))
+                .foregroundColor(iconColor)
+                .scaleEffect(isHovering && showsHoverAnimation && motionPreference.allowsMotion ? AppUI.Motion.hoverScale : 1.0)
                 .animation(AppUI.Motion.enabled(AppUI.Motion.hover, preference: motionPreference), value: isHovering)
                 .onHover { hovering in
+                    guard showsHoverAnimation else { return }
                     AppUI.Motion.animate(AppUI.Motion.enabled(AppUI.Motion.hover, preference: motionPreference)) {
                         isHovering = hovering
                     }
                 }
 
             title
-                .font(AppUI.Typography.bodyEmphasized)
-                .foregroundColor(theme.textSecondary)
+                .font(titleFont)
+                .foregroundColor(titleColor)
 
             if let description {
                 description
-                    .font(AppUI.Typography.caption1)
-                    .foregroundColor(theme.textTertiary)
+                    .font(descriptionFont)
+                    .foregroundColor(descriptionColor)
                     .multilineTextAlignment(.center)
+                    .frame(maxWidth: descriptionMaxWidth)
             }
 
             if let actionTitle, let action {
@@ -93,8 +108,58 @@ public struct AppEmptyState: View {
                     .padding(.top, AppUI.Spacing.xs)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(AppUI.Spacing.xl)
+        .frame(maxWidth: .infinity, maxHeight: size == .regular ? CGFloat.infinity : nil)
+        .padding(contentPadding)
+    }
+
+    var spacing: CGFloat {
+        size == .regular ? AppUI.Spacing.md : 8
+    }
+
+    var iconSize: CGFloat {
+        size == .regular ? 48 : 22
+    }
+
+    private var iconColor: Color {
+        switch size {
+        case .regular:
+            theme.textSecondary.opacity(0.6)
+        case .compact:
+            theme.textTertiary
+        }
+    }
+
+    private var titleFont: Font {
+        size == .regular ? AppUI.Typography.bodyEmphasized : AppTypography.micro
+    }
+
+    private var titleColor: Color {
+        size == .regular ? theme.textSecondary : theme.textTertiary
+    }
+
+    private var descriptionFont: Font {
+        size == .regular ? AppUI.Typography.caption1 : AppTypography.caption
+    }
+
+    private var descriptionColor: Color {
+        theme.textTertiary
+    }
+
+    private var descriptionMaxWidth: CGFloat? {
+        size == .compact ? 220 : nil
+    }
+
+    var contentPadding: EdgeInsets {
+        switch size {
+        case .regular:
+            EdgeInsets(top: AppUI.Spacing.xl, leading: AppUI.Spacing.xl, bottom: AppUI.Spacing.xl, trailing: AppUI.Spacing.xl)
+        case .compact:
+            EdgeInsets(top: 20, leading: 12, bottom: 20, trailing: 12)
+        }
+    }
+
+    private var showsHoverAnimation: Bool {
+        size == .regular
     }
 }
 

@@ -4,20 +4,33 @@ public struct AppSearchBar: View {
     @LumiTheme private var theme
 
     @Binding var text: String
-    let placeholder: LocalizedStringKey
+    let placeholder: Text
     let onSubmit: (() -> Void)?
 
     @FocusState private var isFocused: Bool
 
     public init(text: Binding<String>, placeholder: LocalizedStringKey) {
         self._text = text
-        self.placeholder = placeholder
+        self.placeholder = Text(placeholder)
         self.onSubmit = nil
     }
 
     public init(text: Binding<String>, placeholder: LocalizedStringKey, onSubmit: @escaping () -> Void) {
         self._text = text
-        self.placeholder = placeholder
+        self.placeholder = Text(placeholder)
+        self.onSubmit = onSubmit
+    }
+
+    /// 接受已本地化字符串的占位符（插件用 `pluginLocalization.string(...)` 自行取词时使用）。
+    public init(text: Binding<String>, localizedPlaceholder: String) {
+        self._text = text
+        self.placeholder = Text(verbatim: localizedPlaceholder)
+        self.onSubmit = nil
+    }
+
+    public init(text: Binding<String>, localizedPlaceholder: String, onSubmit: @escaping () -> Void) {
+        self._text = text
+        self.placeholder = Text(verbatim: localizedPlaceholder)
         self.onSubmit = onSubmit
     }
 
@@ -37,14 +50,17 @@ public struct AppSearchBar: View {
                 .font(.system(size: 14))
                 .foregroundColor(theme.textSecondary)
 
-            TextField(placeholder, text: $text)
-                .textFieldStyle(.plain)
-                .font(AppUI.Typography.caption1)
-                .foregroundColor(theme.textPrimary)
-                .focused($isFocused)
-                .onSubmit {
-                    onSubmit?()
-                }
+            TextField(text: $text, prompt: placeholder) {
+                EmptyView()
+            }
+            .accessibilityLabel(placeholder)
+            .textFieldStyle(.plain)
+            .font(AppUI.Typography.caption1)
+            .foregroundColor(theme.textPrimary)
+            .focused($isFocused)
+            .onSubmit {
+                onSubmit?()
+            }
 
             if !text.isEmpty {
                 Button {
@@ -72,14 +88,17 @@ public struct AppSearchBar: View {
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(Color.lumiSecondaryLabel)
 
-            TextField(placeholder, text: $text)
-                .textFieldStyle(.plain)
-                .font(.body)
-                .foregroundStyle(Color.lumiPrimaryLabel)
-                .focused($isFocused)
-                .onSubmit {
-                    onSubmit?()
-                }
+            TextField(text: $text, prompt: placeholder) {
+                EmptyView()
+            }
+            .accessibilityLabel(placeholder)
+            .textFieldStyle(.plain)
+            .font(.body)
+            .foregroundStyle(Color.lumiPrimaryLabel)
+            .focused($isFocused)
+            .onSubmit {
+                onSubmit?()
+            }
 
             if !text.isEmpty {
                 Button {
